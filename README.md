@@ -31,20 +31,10 @@ As described above, Edge drivers cannot use any specific port, so this makes it 
 
 This server offers a simpler solution:  an Edge driver 'registers' with the server what IP address it is interested in getting messages from.  The LAN device or application is configured to send its messages to the server (which has a fixed IP/port number).  Then when the server receives those messages, it looks up who is registered to receive them, and then forwards them to the appropriate IP/port number.  If/when the Edge driver port number changes, it simply re-registers the new port number with the server.  No configuration change is needed at the LAN device or application.  A static IP address is typically recommended for the physical device or application.
 ### Installation
-#### Shelly Motion Sensor Edge Driver
-The Edge Driver is installed like any other through a shared channel invitation.
-
-Once the driver is available on the hub, the mobile app is used to perform an Add device / Scan nearby, and a new device called Shelly Motion Sensor is created and will be displayed in the 'No room assigned' room.  Additional devices can be created using a button on the device details screen ('Create new device').
-
-Before the SmartThings device can be operational, the forwarding bridge server must be running on a computer on the same LAN as the SmartThings hub.  See below.
-
-If the server is running, the new SmartThings Shelly Motion Sensor device can be configured by going to the device details screen and tapping the 3 vertical dots in the upper right corner and then selecting Settings.  There are four options that will be displayed:
-* Auto motion revert to inactive - this option allows you to control the behavior of the SmartThings motion device when it receives an active motion message from the physical Shelly Motion Sensor via the bridge server.  Typically this would be set to 'Auto-revert to inactive', but this can also be set to NOT auto-revert to inactive (leave in active state)
-* Active Motion duration - If the auto revert to inactive setting is chosen, then this is the number of seconds you can configure before the motion sensor reverts to inactive
-* Shelly Device Address - this is the IP address of the physical Shelly Motion Sensor; this should be a static IP address
-* Bridge Address - this is the IP and port number address of the forwarding bridge server; this should be a static IP address.  The server port number can be configured by the user (see below), but **defaults to 8088**.
-
-Once the Bridge address is configured, the driver will attempt to connect.  Messages should be visible on the server message console.
+This is a three-step process:
+- Configure and install the forwarding bridge server
+- Configure the Shelly Motion Sensor
+- Install the Edge Driver
 
 #### Forwarding Bridge Server
 
@@ -68,3 +58,58 @@ python3 edgebridge.py
 It is recommended to run this in a window where you can monitor the output messages.  You may want to log them permanently to a file as well.
 
 Note that the server creates and maintains a hidden file ('.registrations') which contains records capturing the Edge driver ID, hub address, and LAN device/application IP address to be monitored.  As driver port numbers change due to restarts, the registrations file may contain old records for a short time, but these will eventually be cleared out after 3 failed attempts to communicate with the 'old' port number(s).
+
+#### Shelly Motion Sensor Configuration
+The physical device must be configured to send an HTTP message whenever it senses motion.  Follow these steps:
+- Configure your router to give the device a static IP address
+- Use a browser to access the Shelly Motion Sensor configuration page by typing the device's IP address into the web site address bar and pressing enter.  Note that it may take several seconds for the page to respond as the device needs to wake up; your browser may time out initially, but eventually should display the config page
+- Click on the **Actions** button
+- Expand the **Motion Detected** section, click the **Enabled** checkbox, and enter the IP:port address of where the forwarding bridge server will be listening; for example:
+```
+http://192.168.1.140:8088
+```
+- Click the **Save** button
+- Don't forget to close the web browser page when done, or your device battery could get drained down
+
+#### Shelly Motion Sensor Edge Driver
+The Edge Driver is installed like any other through a shared channel invitation.
+
+Once the driver is available on the hub, the mobile app is used to perform an Add device / Scan nearby, and a new device called Shelly Motion Sensor is created and will be displayed in the 'No room assigned' room.  Additional devices can be created using a button on the device details screen ('Create new device').
+
+Before the SmartThings device can be operational, the forwarding bridge server must be running on a computer on the same LAN as the SmartThings hub.  See above.
+
+If the server is running, the new SmartThings Shelly Motion Sensor device can be configured by going to the device details screen and tapping the 3 vertical dots in the upper right corner and then selecting Settings.  There are four options that will be displayed:
+* Auto motion revert to inactive - this option allows you to control the behavior of the SmartThings motion device when it receives an active motion message from the physical Shelly Motion Sensor via the bridge server.  Typically this would be set to 'Auto-revert to inactive', but this can also be set to NOT auto-revert to inactive (leave in active state)
+* Active Motion duration - If the auto revert to inactive setting is chosen, then this is the number of seconds you can configure before the motion sensor reverts to inactive
+* Shelly Device Address - this is the IP address of the physical Shelly Motion Sensor; this should be a static IP address
+* Bridge Address - this is the IP and port number address of the forwarding bridge server; this should be a static IP address.  The server port number can be configured by the user (see below), but **defaults to 8088**.
+
+Once the Bridge address is configured, the driver will attempt to connect.  Messages should be visible on the server message console.
+
+
+## Forwarding Bridge Server Interface Specification
+
+The server uses a simple RESTful API to accept commands from SmartThings Edge drivers.
+
+For purposes of the examples below, we'll assume the server is located at *192.168.1.140:8088*.
+
+### Forwarding Edge Driver HTTP Requests
+The Edge driver wants the server to **forward** an HTTP request to somewhere *outside* the LAN
+```
+[GET | POST] http://192.168.1.140:8088/api/forward?url=<URL string>
+```
+*URL string* can be any valid URL including paramaters.  Examples:
+- http://192.168.1.104:1755/PiServer.xml
+- http://www.websitename.com
+- https://http-bin.org/post?key1=key1value&key2=key2value
+- https://api.smartthings.com/v1/devices/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/components/main/capabilities/switch/status
+
+### Forwarding device/app message TO an Edge driver
+The Edge driver sends a request to the server to **register** a specific device/app address from which it wants to receive messages
+```
+POST http://192.168.1.140:8088/api/register?addr=<address of device/app to listen to>
+DELETE http://192.168.1.140:8088/api/register?addr=<address of device/app to stop listening to>
+```
+*address of device/app* can optionally include a port number.  Examples:
+- 192.168.1.150
+- 192.168.1.140:2345
