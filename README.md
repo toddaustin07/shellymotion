@@ -104,6 +104,11 @@ The Edge driver wants the server to **forward** an HTTP request to somewhere *ou
 - https://http-bin.org/post?key1=key1value&key2=key2value
 - https://api.smartthings.com/v1/devices/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/components/main/capabilities/switch/status
 
+#### Example forwarding request
+```
+GET http://192.168.1.140:8088/api/forward?url=https://http-bin.org/post?key1=key1value&key2=key2value
+```
+
 ### Forwarding device/app message TO an Edge driver
 The Edge driver sends a request to the server to **register** a specific device/app address from which it wants to receive messages
 ```
