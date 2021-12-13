@@ -82,7 +82,7 @@ If the server is running, the new SmartThings Shelly Motion Sensor device can be
 * Auto motion revert to inactive - this option allows you to control the behavior of the SmartThings motion device when it receives an active motion message from the physical Shelly Motion Sensor via the bridge server.  Typically this would be set to 'Auto-revert to inactive', but this can also be set to NOT auto-revert to inactive (leave in active state)
 * Active Motion duration - If the auto revert to inactive setting is chosen, then this is the number of seconds you can configure before the motion sensor reverts to inactive
 * Shelly Device Address - this is the IP address of the physical Shelly Motion Sensor; this should be a static IP address
-* Bridge Address - this is the IP and port number address of the forwarding bridge server; this should be a static IP address.  The server port number can be configured by the user (see below), but **defaults to 8088**.
+* Bridge Address - this is the IP and port number address of the forwarding bridge server; this should be a static IP address.  The server port number can be configured by the user (see above), but **defaults to 8088**.
 
 Once the Bridge address is configured, the driver will attempt to connect.  Messages should be visible on the server message console.
 
