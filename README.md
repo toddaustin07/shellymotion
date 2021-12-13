@@ -36,7 +36,7 @@ The Edge Driver is installed like any other through a shared channel invitation.
 
 Once the driver is available on the hub, the mobile app is used to perform an Add device / Scan nearby, and a new device called Shelly Motion Sensor is created and will be displayed in the 'No room assigned' room.  Additional devices can be created using a button on the device details screen ('Create new device').
 
-Before the driver can be operational, the forwarding bridge server must be running on a computer on the same LAN as the SmartThings hub.  See below.
+Before the SmartThings device can be operational, the forwarding bridge server must be running on a computer on the same LAN as the SmartThings hub.  See below.
 
 If the server is running, the new SmartThings Shelly Motion Sensor device can be configured by going to the device details screen and tapping the 3 vertical dots in the upper right corner and then selecting Settings.  There are four options that will be displayed:
 * Auto motion revert to inactive - this option allows you to control the behavior of the SmartThings motion device when it receives an active motion message from the physical Shelly Motion Sensor via the bridge server.  Typically this would be set to 'Auto-revert to inactive', but this can also be set to NOT auto-revert to inactive (leave in active state)
