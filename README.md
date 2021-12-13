@@ -99,14 +99,14 @@ The Edge driver wants the server to **forward** an HTTP request to somewhere *ou
 [GET | POST] http://192.168.1.140:8088/api/forward?url=<URL string>
 ```
 *URL string* can be any valid URL including paramaters.  Examples:
-- http://192.168.1.104:1755/PiServer.xml
 - http://www.websitename.com
 - https://http-bin.org/post?key1=key1value&key2=key2value
 - https://api.smartthings.com/v1/devices/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/components/main/capabilities/switch/status
 
-#### Example forwarding request
+#### Example forwarding requests
 ```
-GET http://192.168.1.140:8088/api/forward?url=https://http-bin.org/post?key1=key1value&key2=key2value
+POST http://192.168.1.140:8088/api/forward?url=https://http-bin.org/post?key1=key1value&key2=key2value
+GET http://192.168.1.140:8088/api/forward?url=https://api.smartthings.com/v1/devices/80e99446-a656-41e2-9db7-3981f7c0e126/components/main/capabilities/switch/status
 ```
 
 ### Forwarding device/app message TO an Edge driver
