@@ -118,3 +118,8 @@ DELETE http://192.168.1.140:8088/api/register?devaddr=<address of device/app to 
 - 192.168.1.107:31732
 
 *edgeid* must be in the format xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+
+#### Example registration request
+```
+POST http://192.168.1.140:8088/api/register?devaddr=192.168.1.150&hubaddr=192.168.1.107:31732&edgeid=3894BE52-09E8-4CFD-AD5C-580DE59B6873
+```
