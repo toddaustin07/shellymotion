@@ -40,7 +40,7 @@ This is a three-step process:
 
 Download the Python script or Windows executable file to a folder on your computer.  You can start it manually or preferrably, configure your computer to auto start the program whenever it reboots.
 ##### Configuration file
-If you want to change the default port number of the server (8088), you can do so by creating a configuration file which will be read when the server is started.  This config file can also be used to provide your SmartThings Token if you plan to do any SmartThings API calls.
+If you want to change the default **port number** of the server (8088), you can do so by creating a configuration file which will be read when the server is started.  This config file can also be used to provide your **SmartThings Bearer Token** if you plan to do any SmartThings API calls.
 The format of the file is as follows:
 ```
 [config]
