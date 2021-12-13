@@ -1,0 +1,50 @@
+name: shellymotion.v1
+components:
+- id: main
+  capabilities:
+    - id: motionSensor
+      version: 1
+    - id: partyvoice23922.createanother
+      version: 1
+  categories:
+    - name: MotionSensor
+preferences:
+  - title: "Auto motion revert to inactive"
+    name: automotion
+    description: "Select behavior"
+    required: true
+    preferenceType: enumeration
+    definition:
+      options:
+        yesauto: "Auto-revert to inactive"
+        noauto: "No auto-revert to inactive"
+      default: yesauto
+  - title: "Active Motion duration"
+    name: motionduration
+    description: "Number of seconds"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 1
+      maximum: 60
+      default: 3
+  - title: "Shelly Device Address"
+    name: deviceaddr
+    description: "IP address of Motion Sensor"
+    required: true
+    preferenceType: string
+    definition:
+      stringType: text
+      minLength: 7
+      maxLength: 15
+      default: "192.168.1.n"
+  - title: "Bridge Address"
+    name: bridgeaddr
+    description: "IP:Port addr of Edge Bridge"
+    required: true
+    preferenceType: string
+    definition:
+      stringType: text
+      minLength: 10
+      maxLength: 21
+      default: "192.168.1.n:8082"

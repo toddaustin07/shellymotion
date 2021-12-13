@@ -1,0 +1,5 @@
+name: 'Shelly Motion'
+packageKey: 'shellymotionv1'
+permissions:
+    lan: {}
+    discovery: {}
