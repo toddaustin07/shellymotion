@@ -57,8 +57,10 @@ The format of the file is as follows:
 Server_Port = nnnnn
 SmartThings_Bearer_Token = xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 ```
-This file is optional.
-####
+This configuration file is **optional**.
+
+##### Run the Server
+
 Start the server by this command:
 ```
 python3 edgebridge.py
