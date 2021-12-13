@@ -107,9 +107,14 @@ The Edge driver wants the server to **forward** an HTTP request to somewhere *ou
 ### Forwarding device/app message TO an Edge driver
 The Edge driver sends a request to the server to **register** a specific device/app address from which it wants to receive messages
 ```
-POST http://192.168.1.140:8088/api/register?addr=<address of device/app to listen to>
-DELETE http://192.168.1.140:8088/api/register?addr=<address of device/app to stop listening to>
+POST http://192.168.1.140:8088/api/register?devaddr=<address of device/app to listen to>&hubaddr=<hub IP:port in use by the driver>&edgeid=<Edge device ID>
+DELETE http://192.168.1.140:8088/api/register?devaddr=<address of device/app to stop listening to>&hubaddr=<hub IP:port in use by the driver>&edgeid=<Edge device ID>
 ```
-*address of device/app* can optionally include a port number.  Examples:
+*devaddr* can optionally include a port number.  Examples:
 - 192.168.1.150
 - 192.168.1.140:2345
+
+*hubaddr* MUST include the port number:
+- 192.168.1.107:31732
+
+*edgeid* must be in the format xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
