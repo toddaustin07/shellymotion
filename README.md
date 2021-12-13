@@ -31,7 +31,7 @@ As described above, Edge drivers cannot use any specific port, so this makes it 
 
 This server offers a simpler solution:  an Edge driver 'registers' with the server what IP address it is interested in getting messages from.  The LAN device or application is configured to send its messages to the server (which has a fixed IP/port number).  Then when the server receives those messages, it looks up who is registered to receive them, and then forwards them to the appropriate IP/port number.  If/when the Edge driver port number changes, it simply re-registers the new port number with the server.  No configuration change is needed at the LAN device or application.  A static IP address is typically recommended for the physical device or application.
 ### Installation
-#### Edge Driver
+#### Shelly Motion Sensor Edge Driver
 The Edge Driver is installed like any other through a shared channel invitation.
 
 Once the driver is available on the hub, the mobile app is used to perform an Add device / Scan nearby, and a new device called Shelly Motion Sensor is created and will be displayed in the 'No room assigned' room.  Additional devices can be created using a button on the device details screen ('Create new device').
