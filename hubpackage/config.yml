@@ -1,5 +1,5 @@
-name: 'Shelly Motion'
-packageKey: 'shellymotionv1'
+name: 'LAN Motion Device Driver'
+packageKey: 'lanmotionv1'
 permissions:
     lan: {}
     discovery: {}

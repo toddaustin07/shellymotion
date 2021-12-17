@@ -229,9 +229,9 @@ local function watch_socket(_, sock)
     client:send(OK_MSG)
    
     -- received url format = 'POST /<device address>/<device message method>/<device message path> HTTP/1.1'
-    local devaddr, devmethod, devmsgpath = line:match('^POST /([%d%.:]+)/(%a+)(.)')
+    local devaddr, devmethod, devmsgpath = line:match('^POST /([%d%.:]+)/(%a+)(.*) ')
     
-    callback(devaddr)
+    callback(devaddr, devmethod, devmsgpath)
 
   else
     log.error ('Unexpected message received from Bridge:', line)

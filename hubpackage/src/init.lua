@@ -14,9 +14,9 @@
 
   DESCRIPTION
   
-  Shelly Motion Driver
+  LAN Motion Driver for LAN-based devices that can send an HTTP message when motion or tamper is detected
 
-  Dependency:  Edge Bridge running on local LAN
+  Dependency:  Forwarding Bridge Server running on the LAN
 
 --]]
 
@@ -39,7 +39,7 @@ local thisDriver = {}
 local initialized = false
 local lastinfochange = socket.gettime()
 local motionreset = {}
-
+local tamperreset = {}
 
 local function resetmotion()
 
@@ -49,7 +49,7 @@ local function resetmotion()
     for _, device in ipairs(device_list) do
       if device.id == id then
         
-        if (socket.gettime() - info.starttime) > tonumber(device.preferences.motionduration) then
+        if (socket.gettime() - info.starttime) > tonumber(device.preferences.revertdelay) then
           device:emit_event(capabilities.motionSensor.motion('inactive'))
           motionreset[id] = nil
         end
@@ -60,32 +60,116 @@ local function resetmotion()
   
 end
 
+local function resettamper()
 
-local function trigger_motion(devaddr)
+  local device_list = thisDriver:get_devices()
+  
+  for id, info in pairs(tamperreset) do
+    for _, device in ipairs(device_list) do
+      if device.id == id then
+        
+        if (socket.gettime() - info.starttime) > tonumber(device.preferences.revertdelay) then
+          device:emit_event(capabilities.tamperAlert.tamper('clear'))
+          tamperreset[id] = nil
+        end
+
+      end
+    end
+  end
+  
+end
+
+
+function split(str, pat)
+  local t = {}
+  local fpat = "(.-)" .. pat
+  local last_end = 1
+  local s, e, cap = str:find(fpat, 1)
+  while s do
+    if s ~= 1 or cap ~= "" then
+      table.insert(t, cap)
+    end
+    last_end = e+1
+    s, e, cap = str:find(fpat, last_end)
+  end
+  if last_end <= #str then
+    cap = str:sub(last_end)
+    table.insert(t, cap)
+  end
+  return t
+end
+
+function split_path(str)
+   return split(str,'[\\/]+')
+end
+
+
+local function trigger_callback(devaddr, method, endpoint)
 
   local device_list = thisDriver:get_devices()
 
   for _, device in ipairs(device_list) do
 
     if device.preferences.deviceaddr ==  devaddr then
-      device:emit_event(capabilities.motionSensor.motion('active'))
-      if device.preferences.automotion == 'yesauto' then
-          motionreset[device.id] = {}
-          motionreset[device.id]['starttime'] = socket.gettime()
-          thisDriver:call_with_delay(tonumber(device.preferences.motionduration), resetmotion)
+    
+      if (method == 'GET') or (method == 'Get') or (method == 'get') then
+      
+        local pathparts = split_path(endpoint)
+        
+        local name = pathparts[1]
+        local cmd = pathparts[2]
+        local state = pathparts[3]
+        
+        log.info (string.format('Message from %s: command=%s, state=%s', name, cmd, state))
+        
+        if cmd == 'motion' then
+      
+          if state == 'active' then
+            device:emit_event(capabilities.motionSensor.motion('active'))
+            if device.preferences.autorevert == 'yesauto' then
+              motionreset[device.id] = {}
+              motionreset[device.id]['starttime'] = socket.gettime()
+              thisDriver:call_with_delay(tonumber(device.preferences.revertdelay), resetmotion)
+            end
+          elseif state == 'inactive' then
+            device:emit_event(capabilities.motionSensor.motion('inactive'))
+          else
+            log.error ('Unrecognized command state:', state)
+          end
+          
+        elseif cmd == 'tamper' then
+          if state == 'detected' then
+            device:emit_event(capabilities.tamperAlert.tamper('detected'))
+            if device.preferences.autorevert == 'yesauto' then
+              tamperreset[device.id] = {}
+              tamperreset[device.id]['starttime'] = socket.gettime()
+              thisDriver:call_with_delay(tonumber(device.preferences.revertdelay), resettamper)
+            end
+          elseif state == 'clear' then
+            device:emit_event(capabilities.tamperAlert.tamper('clear'))
+          else
+            log.error ('Unrecognized command state:', state)
+          end
+          
+        else
+          log.error ('Unknown endpoint command:', cmd)
+        end
+      else
+        log.error ('Unexpected HTTP method received:', method)
       end
     end
   end
+  
 end
 
 
 local function create_device(driver)
 
   local MFG_NAME = 'SmartThings Community'
-  local MODEL = 'ShellyMotionWifi'
-  local VEND_LABEL = 'Shelly Motion Sensor'
-  local ID = 'ShellyMotion_' .. socket.gettime()
-  local PROFILE = 'shellymotion.v1'
+  local MODEL = 'LAN Motion Device'
+  local VEND_LABEL = 'LAN Motion Device'
+  local ID = 'LANMotion_' .. socket.gettime()
+  local PROFILE = 'lanmotion.v1'
 
   log.info (string.format('Creating new device: label=<%s>, id=<%s>', VEND_LABEL, ID))
 
@@ -124,7 +208,7 @@ local function device_init(driver, device)
     bridge.start_bridge_server(driver)
     
     -- Try to connect to bridge
-    bridge.init_bridge(device, device.preferences.bridgeaddr, device.preferences.deviceaddr, trigger_motion)
+    bridge.init_bridge(device, device.preferences.bridgeaddr, device.preferences.deviceaddr, trigger_callback)
 
     log.debug('Exiting device initialization')
 end
@@ -189,13 +273,13 @@ local function handler_infochanged (driver, device, event, args)
     
       if args.old_st_store.preferences.bridgeaddr ~= device.preferences.bridgeaddr then
         log.info ('Bridge address changed to: ', device.preferences.bridgeaddr)
-        bridge.init_bridge(device, device.preferences.bridgeaddr, device.preferences.deviceaddr, trigger_motion)
+        bridge.init_bridge(device, device.preferences.bridgeaddr, device.preferences.deviceaddr, trigger_callback)
         
-      elseif args.old_st_store.preferences.automotion ~= device.preferences.automotion then  
-        log.info ('Auto motion revert changed to: ', device.preferences.automotion)
+      elseif args.old_st_store.preferences.autorevert ~= device.preferences.autorevert then  
+        log.info ('Auto revert changed to: ', device.preferences.autorevert)
       
-      elseif args.old_st_store.preferences.motionduration ~= device.preferences.motionduration then 
-        log.info ('Motion active duration changed to: ', device.preferences.motionduration)
+      elseif args.old_st_store.preferences.revertdelay ~= device.preferences.revertdelay then 
+        log.info ('Auto revert delay changed to: ', device.preferences.revertdelay)
       
       elseif args.old_st_store.preferences.deviceaddr ~= device.preferences.deviceaddr then 
         log.info ('Device address changed to: ', device.preferences.deviceaddr)
@@ -204,7 +288,7 @@ local function handler_infochanged (driver, device, event, args)
         -- Assume driver is restarting - shutdown everything
         log.debug ('****** DRIVER RESTART ASSUMED ******')
         
-        bridge.shutdown(driver)
+        --bridge.shutdown(driver)
       end
           
     end
@@ -250,7 +334,7 @@ thisDriver = Driver("thisDriver", {
   }
 })
 
-log.info ('Shelly Motion Sensor Driver v1.0 Started')
+log.info ('LAN Motion Sensor Driver v1.0 Started')
 
 
 thisDriver:run()
