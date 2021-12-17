@@ -220,6 +220,7 @@ local function device_added (driver, device)
   log.info(device.id .. ": " .. device.device_network_id .. "> ADDED")
   
   device:emit_event(capabilities.motionSensor.motion('inactive'))
+  device:emit_event(capabilities.tamperAlert.tamper('clear'))
   
   initialized = true
       
