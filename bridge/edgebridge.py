@@ -29,6 +29,7 @@ import socket
 from typing import TYPE_CHECKING
 import requests
 import os
+import platform
 import configparser
 import json
 
@@ -331,6 +332,11 @@ class myHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         print ('\n**********************************************************************************')
         print ('\033[93m' + time.strftime("%c") + f'\033[0m  {self.command} command received from: {self.client_address}')
         print ('Endpoint: ', self.path)
+        #print ('Headers:\n', self.headers)
+        #if ('Content-Length' in self.headers) or ('CONTENT-LENGTH' in self.headers):
+        #    self.data_string = self.rfile.read(int(self.headers['Content-Length']))
+        #    print ('Data:\n',self.data_string)
+        #print ('- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -')
         
         global regdeletelist
         global registrations
@@ -402,34 +408,39 @@ def process_config(config_filename):
         SMARTTHINGS_TOKEN = DEFAULT_ST_TOKEN
 
 
-    
-
 #################################################################################################
 ##                  MAINLINE
 #################################################################################################
 
-process_config(CONFIGFILENAME)
-registrations = read_regs(REGSFILENAME)
+if __name__ == '__main__':
 
-HandlerClass = myHTTPRequestHandler
-ServerClass = http.server.HTTPServer
+    thisOS = platform.system()
+    print (f'O/S = {thisOS}')
+    if thisOS == 'Windows':
+        os.system('color')              # force color text to work in Windows
 
-httpd = ServerClass(('', SERVER_PORT), HandlerClass)
+    process_config(CONFIGFILENAME)
+    registrations = read_regs(REGSFILENAME)
 
-if httpd:
-    # Trick to get our IP address
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.connect(("8.8.8.8", 80))
-    myipAddress =  s.getsockname()[0]
-    s.close()
+    HandlerClass = myHTTPRequestHandler
+    ServerClass = http.server.HTTPServer
 
-    print ("\n\033[97mSmartThings Edge Forwarding Bridge Server\033[0m")
-    print (f"\033[94m > Serving HTTP on {myipAddress}:{SERVER_PORT}\033[0m\n")
+    httpd = ServerClass(('', SERVER_PORT), HandlerClass)
 
-    try: 
-        httpd.serve_forever()    # wait for, and process HTTP requests
+    if httpd:
+        # Trick to get our IP address
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        myipAddress =  s.getsockname()[0]
+        s.close()
 
-    except KeyboardInterrupt:
-        print ('\n\033[92mINFO: Action interrupted by user...\033[0m\n')
-else:
-    print ('\n\033[91mERROR: cannot initialize Server\033[0m\n')
+        print ("\n\033[97mForwarding Bridge Server v1.0 (for SmartThings Edge)\033[0m")
+        print (f"\033[94m > Serving HTTP on {myipAddress}:{SERVER_PORT}\033[0m\n")
+
+        try: 
+            httpd.serve_forever()    # wait for, and process HTTP requests
+
+        except KeyboardInterrupt:
+            print ('\n\033[92mINFO: Action interrupted by user...\033[0m\n')
+    else:
+        print ('\n\033[91mERROR: cannot initialize Server\033[0m\n')
